@@ -1,0 +1,148 @@
+1. Проверка авторизации пользователя(принимает логин, пароль),(возвращает например bool). Получает Author или  null
+Список истории вернет по кнопке, чтоб не перегружать логин
+
+
+
+
+3. Метод который возвращает список запросов. принимает ID из Author
+
+4. Метод который возвращает список тем (id пользователя). 
+принимает ID из Author 
+возвращает список 
+public class MySubjectProductUser
+    {
+        [DataMember]
+        public MyProduct product { set; get; }
+
+        [DataMember]
+        public List<MySubject> subjects { set; get; }
+
+    } 
+	доступных конкретному юзеру
+
+5. метод который возвращает список продуктов, которые приобрел пользователь(принимает id). Уже вернул в пункте 4 Они уже в кеше (до след.запроса)
+
+6. метод который принимает новый запрос от пользователя о помощи(принимает само сообщение,
+кол-во прикрепленных файлов, id пользователя) 
+принимает 2 класса
+public class MyRequest
+    {
+        [DataMember]
+        public int ID { set; get; }
+
+        [DataMember]
+        public RequestStatus Status { set; get; }
+
+        [DataMember]
+        public MyProduct Product { set; get; }
+
+        [DataMember]
+        public MyUser User { set; get; }
+
+        [DataMember]
+        public MySubject Subject { set; get; }
+
+        [DataMember]
+        public int Support_Spec_Closed_ID { set; get; }
+
+        [DataMember]
+        public bool Has_New_Message { set; get; }
+
+
+    }
+	
+	 public class MyContact
+    {
+        [DataMember]
+        public int ID { set; get; }
+
+        [DataMember]
+        public int Request_ID { set; get; } - 
+
+        [DataMember]
+        public string  Message { set; get; }
+
+        [DataMember]
+        public bool IsFromClient { set; get; } - 
+
+        [DataMember]
+        public int FilesCount { set; get; } +
+
+        [DataMember]
+        public Author Author { set; get; } +
+
+        [DataMember]
+        public List<MyFile> ScreeShots { set; get; } +
+
+        [DataMember]
+        public DateTime DateTime { set; get; }
+    }
+	
+	Возвращает булл, по кнопке обновить статус в главном окне возвращает список этих классов для кеша и отображения всех запросов (истории)
+	
+	Данил 22.05.2019
+	----------------------------------------------------------
+	        // <summary>
+        /// Попытка авторизации клиента техподдержки в сети
+        /// </summary>
+        /// <param name="login"> Логин Клиента</param>
+        /// <param name="password"> Пароль Клиента</param>
+        /// <returns>
+        /// Возвращает класс MyUser(расширенная информация о пользователе)
+        /// или NULL если переданы неверные данные
+        /// </returns>
+        [OperationContract]
+        MyUser UserConnection(string login, string password);
+
+
+        /// <summary>
+        /// Запросить список продуктов и тем для них, доступных конкретному пользователю
+        /// </summary>
+        /// <param name="author">Класс сформированный клиентом для передачи данных о нем на сервер</param>
+        /// <returns>
+        /// Метод возвращает список всех продуктов и уникальных тем для каждого продукта, 
+        /// доступных пользователю, на основании его ID полученного из переданного класса Author
+        /// </returns>
+        [OperationContract]
+        List<MySubjectProductUser> Ge_Products_Subjects_For_User(Author author);
+
+        /// <summary>
+        /// Запросить краткий список истории обращений пользователя в техподдержку.
+        /// </summary>
+        /// <param name="author">Класс сформированный клиентом для передачи данных о нем на сервер</param>
+        /// <returns>
+        /// Метод возвращает все запросы пользователя(закрытые, в работе).
+        /// Возвращает только краткое описание этих запросов без полной истории переписки в этих запросах.
+        /// </returns>
+        [OperationContract]
+        List<MyRequest> Get_Short_RequestsList_For_CurrentUser(Author author);
+
+        /// <summary>
+        /// Запросить полную информацию о запросе на текущий момент
+        /// </summary>
+        /// <param name="RequestID">ID запроса по которому вернуть полную историю общения</param>
+        /// <returns>Метод возвращает полную историю по конкретному запросу, включая все сообщения и прикрепленные файлы, в хронологоческом порядке</returns>
+        [OperationContract]
+        List<MyContact> Get_Full_LOG_Of_Current_Request(int RequestID);
+
+
+        /// <summary>
+        /// Метод передает в тех.поддержку новое обращение от клиента. Возвращает успешность операции. 
+        /// Принимает новый элемент типа-Запрос и привязанный к нему элемент-Обращение(текст и файлы).
+        /// </summary>
+        /// <param name="newRequest"> Краткая информация о запросе(Тема, продукт, данные о клиенте и т.д.)</param>
+        /// <param name="primaryAppeal"> Смысл самого запроса, конкретное описание проблемы и сопутствующие файлы если необходимо</param>
+        /// <returns>Возвращает TRUE or FALSE  в зависимочти от успешности действия.</returns>
+        [OperationContract]
+        bool Post_New_Appeal(MyRequest newRequest, MyContact primaryAppeal);
+		
+		 /// <summary>
+        /// Метод добавляет сообщение к текущему запросу, у которого нет статуса "Закрыт". 
+        /// Вызывается как пользователем так и специалистом поддержки.
+        /// Вызывается вне зависимости от очередности.
+        /// </summary>
+        /// <param name="oldRequest">Краткая информация о запросе(Тема, продукт, данные о клиенте и т.д.)</param>
+        /// <param name="newAppeal">новый сообщение внутри рабочего запроса, конкретное описание проблемы и сопутствующие файлы если необходимо</param>
+        /// <returns>Возвращает TRUE or FALSE  в зависимочти от успешности действия.</returns>
+        [OperationContract]
+        bool Post_Appeal_Inside_Request(MyRequest oldRequest, MyContact newAppeal);

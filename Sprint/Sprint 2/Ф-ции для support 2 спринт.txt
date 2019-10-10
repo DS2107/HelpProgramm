@@ -1,0 +1,115 @@
+Изменить:
+bool Register_New_User(MyUser newUserInfo) => bool Register_New_User(bool red, MyUser newUserInfo, List<MyProduct> product);
+внутри привязать продукты к данному клиенту
+он же будет отвечать за редактирование. если ID не указан занчит новый.
+
+bool Registr_New_Product(string newProduct) => bool Registr_New_Product(bool red, MyProduct Product, List<MySubject> subjects);
+внутри привязка списка тем к данному продукту
+он же будет отвечать за редактирование. если ID не указан занчит новый.
+
+bool Registr_New_Subject(string newSubject) => bool Registr_New_Subject(bool red, MySubject Subject, List<MyProduct> products);
+внутри привязка списка продуктов к данной теме
+он же будет отвечать за редактирование. если ID не указан занчит новый.
+
+bool Register_New_Support_Spesialist(MySupportSpecialist newSpecInfo) => bool Register_New_Support_Spesialist(bool red, MySupportSpecialist newSpecInfo)
+он же будет отвечать за редактирование. если ID не указан занчит новый.
+
+//---------------------------------------30.05.19
+public bool Register_New_User(MyUser newUserInfo, List<int> productIDs, bool ToChange)
+
+public void Disconnect_User(string login) - Прикрутить на ивент Closing
+
+public bool Registr_New_Product(MyProduct Product, List<int> subjectIDs, bool ToChange)
+
+public bool Registr_New_Subject(MySubject Subject, List<int> productIDs, bool ToChange)
+ 
+public bool Register_New_Support_Spesialist(MySupportSpecialist newSpecInfo, bool ToChange) 
+
+public void DisconnectSupporter(string login) - Прикрутить на ивент Closing
+
+//----------------------------------------------------
+
+//---------------01.06.19
+//--------------- !!!!!!!!!!!!!!!!!!!!  Для пользователя. При присоеденении новой базы(с меги) обязательно чистить директорию !!!!!!!!!!!
+//-------------!!!!!!!!!!!!!!!!!!!!!!!!!    SupportService\SupportService\SupportService\bin\Debug\USERS
+
+Мотод возвращающий список заявок по поиску. ТОЛЬКО ПО "ЗАКРЫТЫЕ"
+1. List<MyRequest> Get_Requests_By_Search(int idField, string search, dateFrom, dateTo);  
+idField - энам
+//Закрыто 01.06.19 Ярослав  РЕШЕНИЕ:
+public List<MyRequest> Search_In_Closed_Subjects(SearchField field, string searchContetnt, DateTime from, DateTime to)
+//------------------------------------------------------------
+2. List<MyProduct> Get_MyProduct_By_Subject(int productID)  
+метод возвращает список продуктов привязаных к данной теме
+//Закрыто 01.06.19 Ярослав РЕШЕНИЕ:
+ public List<MyProduct> Get_MyProduct_By_Subject(int subjectID)
+ //------------------------------------------------------------
+3. List<MySubject> Get_MySubject_By_Product(int subjectID)
+метод возвращает список тем привязаных к данному продукту
+//Закрыто 01.06.19 Ярослав  РЕШЕНИЕ:
+ public List<MySubject> Get_MySubject_By_Product(int productID)
+ //------------------------------------------------------------
+4. List<MyProduct> Get_MyProduct_By_User(int userID)
+метод возвращает список продуктов привязанных к данному клиенту
+//Закрыто 01.06.19 Ярослав  РЕШЕНИЕ:
+public List<MyProduct> Get_MyProduct_By_User(int userID)
+ //------------------------------------------------------------
+
+5. Изменить класс MyRequest добавить поле текущий специалист ID, изменить таблицу, изменить процедуры, изменить методы
+//Закрыто 01.06.19 Ярослав  РЕШЕНИЕ:
+//Group Project\Запросы на методы\Sprint 2\Спринт 2 Изменения MSSQL.txt
+//Текстовы документы должны быть отредактированы в течении 3-4 спринта
+ //------------------------------------------------------------
+
+6. Создать enum для функции поиска, создать процедуры поиска
+//Закрыто 01.06.19 Ярослав  РЕШЕНИЕ:
+//Group Project\Service Utility Data\Классы\SearchField.txt
+//Для суппорта проверить доступна ли возможность создавать элемент типа SearchField, на клиенте
+//Пример вызова метода :
+ List<MyRequest> list = Search_In_Closed_Subjects(SearchField.ProductName, "ООО Говномешалка", date1, date2)
+//------------------------------------------------------------
+
+7. Реализовать метод принятия и отказа от запроса, работником поддержки
+//Закрыто 01.06.19 Ярослав  РЕШЕНИЕ:
+public bool Accept_Refuse_The_Request(int supportID, int requestID)
+ //------------------------------------------------------------
+ 
+ 8. Реализовать метод закрытия запроса работником поддержки
+//Закрыто 01.06.19 Ярослав  РЕШЕНИЕ:
+public bool Close_Request(int supportID, int requestID)
+ //------------------------------------------------------------
+
+9. Реализовать метод Возвращаущий запросы прикрепленные к специалисту
+//Закрыто 01.06.19 Ярослав  РЕШЕНИЕ:
+public List<MyRequest> Get_InProgress_Requests(int supporter_ID)
+//------------------------------------------------------------
+
+10. Реализовать метод возвращающий всех пользователей
+//Закрыто 01.06.19 Ярослав  РЕШЕНИЕ:
+public List<MyUser> Get_All_Users()
+//------------------------------------------------------------
+
+11. Реализовать метод возвращающий всех специалистов
+//Закрыто 01.06.19 Ярослав  РЕШЕНИЕ:
+ public List<MySupportSpecialist> Get_All_SupportSpec()
+//------------------------------------------------------------
+
+
+12. Реализовать метод возвращающий все темы
+//Закрыто 01.06.19 Ярослав  РЕШЕНИЕ:
+public List<MySubject> Get_All_Subjects()
+//------------------------------------------------------------
+
+13. Разработать ImageConverter
+
+ //------------------------------------------------------------
+
+14. Разработать Сохранение файлов на сервере
+
+ //------------------------------------------------------------
+ 
+ 15. Разработать Загрузку файлов на сервере
+
+ //------------------------------------------------------------
+
+

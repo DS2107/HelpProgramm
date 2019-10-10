@@ -1,0 +1,258 @@
+
+--------------------------------------------------------------30.05.19
+
+--Удалить все привязки продуктов к определенному пользователю
+create proc Delete_All_Products_From_User(@userID int)
+as
+begin
+delete from Products_Users 
+where Products_Users.User_ID = @userID
+end
+
+--Привязать 1 продукт к пользователю
+create proc Link_User_With_Product(@userID int, @productID int)
+as
+begin
+insert into Products_Users(Products_Users.Product_ID, Products_Users.User_ID)
+values(@productID,@userID)
+end
+
+--Редактировать данные пользователя исключая ID и Логин (Поля уникальны)
+create proc Update_User_Info(
+@Password nvarchar(40), 
+@Fname nvarchar(40),
+@Lname nvarchar(40),
+@CompanyName nvarchar(40),
+@Address nvarchar(40),
+@User_Status bit, 
+@Priority int,
+@ID int)
+as
+begin
+update Users set 
+Users.Address = @Address,
+Users.CompanyName = @CompanyName,
+Users.Fname = @Fname,
+Users.Lname = @Lname,
+Users.Password = @Password,
+Users.Priority = @Priority,
+Users.User_Status = @User_Status
+where Users.User_ID = @ID
+end
+
+--Удалить все темы из конкретного продукта
+create proc Delete_All_Subjects_From_Product(@productID int)
+as
+begin
+delete from Subject_Product 
+where Subject_Product.Product_ID = @productID
+end
+
+
+--Привязать одну тему к продукту
+create proc Link_Product_With_Subject(@productID int, @subjID int)
+as
+begin
+insert into Subject_Product (Subject_Product.Product_ID, Subject_Product.Subject_ID)
+values (@productID, @subjID)
+end
+
+--Удалить привязку одной темы от всех продуктов
+create proc Delete_All_Products_From_Subject(@subjID int)
+as
+begin
+delete from Subject_Product
+where Subject_Product.Subject_ID = @subjID
+end
+
+--получить ID последней созданной темы
+create proc Get_Newest_Subject_ID
+as
+begin
+SELECT max(Subjects.Subject_ID) FROM Subjects 
+end
+
+--Внести изменения в данные сотрудника по его ID, поле Login неизменно
+create proc Update_SupportSpecialist(
+@Password nvarchar(50),
+@Fname nvarchar(50),
+@Lname nvarchar(50),
+@Address nvarchar(50),
+@Support_Spec_ID int
+)
+as
+begin
+update Support_Specialist set 
+Support_Specialist.Address = @Address,
+Support_Specialist.Fname =@Fname,
+Support_Specialist.Lname = @Lname,
+Support_Specialist.Password = @Password
+where Support_Specialist.Support_Spec_ID = @Support_Spec_ID
+end
+
+--Получить все продукты связанные с конкретной темой, по ID темы
+create proc Get_All_Products_By_Subject(@subjectID int)
+as
+begin
+select * from Products where Products.Product_ID IN
+(select distinct Subject_Product.Product_ID 
+from Subject_Product 
+where Subject_Product.Subject_ID =  @subjectID)
+end
+
+--Получить все темы связанные с конкретным продкутом, по ID продукта
+create proc Get_All_Subjects_By_ProductID(@productID int)
+as
+begin
+select * from Subjects where Subjects.Subject_ID IN
+(select distinct Subject_Product.Subject_ID 
+from Subject_Product 
+where Subject_Product.Product_ID =  @productID)
+end
+
+--Получить все продукты доступные клиенту, по ID клиента
+create proc Get_All_Products_By_UserID(@userID int)
+as
+begin
+select * from Products where Products.Product_ID IN
+(select distinct Products_Users.Product_ID from Products_Users
+where Products_Users.User_ID = @userID)
+end
+
+--Получить ID специалиста который работает с запросом
+create proc Get_BelongsToID_From_Request(@requestID int)
+as
+begin
+select Requests.Belong_To_Support_ID from Requests
+where Requests.Request_ID = @requestID
+end
+
+--Связать запрос со специалистом и изменить его статус
+create proc Accept_Request(@requestID int, @supportID int)
+as
+begin
+update Requests set Requests.Belong_To_Support_ID = @supportID, 
+Requests.Request_Status_ID = 2
+where Requests.Request_ID = @requestID
+end
+
+--Отказ специалиста от запроса(перемещение запроса в список входящих)
+create proc Refuse_From_Request(@requestID int)
+as
+begin
+update Requests set Requests.Belong_To_Support_ID = -1,
+Requests.Request_Status_ID = 5
+where Requests.Request_ID = @requestID
+end
+
+--Закрыть запрос
+create proc Close_Request(@requestID int, @supportID int)
+as
+begin
+update Requests set Requests.Support_Spec_Closed_ID = @supportID,
+Requests.Request_Status_ID = 6
+where Requests.Request_ID = @requestID
+end
+
+
+--Получить все заявки с которыми работает специалист, статус заявки = "в работе"
+create proc Get_Supporters_Requests(@supportID int)
+as
+begin
+select * from Requests
+where Requests.Belong_To_Support_ID = @supportID
+and Requests.Request_Status_ID = 2
+end
+
+--Получить все закрыты запросы, поданные пользователями из определенной компании
+create proc Search_ClosedRequests_By_CompanyName(@CompanyName nvarchar(40), @from datetime, @to datetime)
+as
+begin
+select * from Requests
+where Requests.User_ID IN
+(select Users.User_ID from Users 
+where Users.CompanyName = @CompanyName)
+AND Requests.Request_Status_ID = 6
+AND Requests.RegistrationDateTime >=  @from
+AND Requests.RegistrationDateTime <=  @to
+end
+
+--Получить все закрыты запросы, поданные пользователями с определенными именами
+create proc Search_ClosedRequests_By_Fname(@Fname nvarchar(40), @from datetime, @to datetime)
+as
+begin
+select * from Requests
+where Requests.User_ID IN
+(select Users.User_ID from Users 
+where Users.Fname = @Fname)
+AND Requests.Request_Status_ID = 6
+AND Requests.RegistrationDateTime >=  @from
+AND Requests.RegistrationDateTime <=  @to
+end
+
+--Получить все закрытые запросы, поданные пользователями с определенной фамилией
+create proc Search_ClosedRequests_By_Lname(@Lname nvarchar(40), @from datetime, @to datetime)
+as
+begin
+select * from Requests
+where Requests.User_ID IN
+(select Users.User_ID from Users 
+where Users.Lname = @Lname)
+AND Requests.Request_Status_ID = 6
+AND Requests.RegistrationDateTime >=  @from
+AND Requests.RegistrationDateTime <=  @to
+end
+
+--Получить все закрытые запросы, поданные пользователями с определенным логином
+create proc Search_ClosedRequests_By_Login(@Login nvarchar(40), @from datetime, @to datetime)
+as
+begin
+select * from Requests
+where Requests.User_ID IN
+(select Users.User_ID from Users 
+where Users.Login = @Login)
+AND Requests.Request_Status_ID = 6
+AND Requests.RegistrationDateTime >=  @from
+AND Requests.RegistrationDateTime <=  @to
+end
+
+
+--Получить все закрытые запросы, на определенную тему
+create proc Search_ClosedRequests_By_Subject(@subjectName nvarchar(100), @from datetime, @to datetime)
+as
+begin
+select * from Requests
+where Requests.Subject_ID =
+(select distinct Subjects.Subject_ID from Subjects
+where Subjects.Subject_Name = @subjectName)
+AND Requests.Request_Status_ID = 6
+AND Requests.RegistrationDateTime >=  @from
+AND Requests.RegistrationDateTime <=  @to
+end
+
+--Получить все закрытые запросы, по определенному продукту
+create proc Search_ClosedRequests_By_Product(@productName nvarchar(50), @from datetime, @to datetime)
+as
+begin
+select * from Requests
+where Requests.Product_ID =
+(select distinct Products.Product_ID from Products
+where Products.Product_Name = @productName)
+AND Requests.Request_Status_ID = 6
+AND Requests.RegistrationDateTime >=  @from
+AND Requests.RegistrationDateTime <=  @to
+end
+
+--Получить всех пользователей
+alter proc Get_All_Users
+as
+begin
+select * from Users
+end
+
+--Получить всех специалистов
+create proc Get_All_SupportSpecialists
+as
+begin
+select * from Support_Specialist
+end
